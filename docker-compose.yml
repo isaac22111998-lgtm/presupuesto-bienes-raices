@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: presupuesto_web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://presupuesto_user:presupuesto_pass@db:5432/presupuesto_db
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app/static:/app/app/static
+
+  db:
+    image: postgres:16-alpine
+    container_name: presupuesto_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=presupuesto_db
+      - POSTGRES_USER=presupuesto_user
+      - POSTGRES_PASSWORD=presupuesto_pass
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U presupuesto_user -d presupuesto_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
