@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Crear Cuenta{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="auth-card card shadow">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <i class="bi bi-person-plus-fill display-4 text-accent"></i>
+          <h4 class="mt-2 fw-bold">Crear Cuenta</h4>
+        </div>
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            <label class="form-label">{{ form.username.label }}</label>
+            {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="usuario123") }}
+            {% for e in form.username.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.email.label }}</label>
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="tu@correo.com") }}
+            {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.password.label }}</label>
+            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Mín. 8 chars, mayúscula, número, especial") }}
+            {% for e in form.password.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.confirm.label }}</label>
+            {{ form.confirm(class="form-control" + (" is-invalid" if form.confirm.errors else ""), placeholder="Repite la contraseña") }}
+            {% for e in form.confirm.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="d-grid mt-4">
+            {{ form.submit(class="btn btn-accent btn-lg w-100") }}
+          </div>
+        </form>
+        <hr class="my-3">
+        <p class="text-center mb-0 small">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
