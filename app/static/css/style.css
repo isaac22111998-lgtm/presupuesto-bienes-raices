@@ -1,0 +1,207 @@
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2128;
+  --bg-card-hover: #242b33;
+  --border: #30363d;
+  --text-primary: #e6edf3;
+  --text-muted: #8b949e;
+  --accent: #e94560;
+  --accent-hover: #c73652;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar {
+  background: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0;
+}
+.navbar-brand { font-size: 1.2rem; color: var(--text-primary) !important; }
+.nav-link { color: var(--text-muted) !important; transition: color .2s; }
+.nav-link:hover { color: var(--text-primary) !important; }
+.btn-nav-logout { color: var(--text-muted) !important; }
+.btn-register {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-radius: 6px;
+  padding: .35rem .9rem !important;
+}
+.text-accent { color: var(--accent) !important; }
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-primary);
+}
+.card-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 11px 11px 0 0 !important;
+}
+.section-header {
+  font-weight: 600;
+  padding: .75rem 1rem;
+}
+
+/* Auth cards */
+.auth-card { max-width: 100%; }
+.auth-card .form-control, .auth-card .form-check-input {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.auth-card .form-control:focus {
+  background: var(--bg-secondary);
+  border-color: var(--accent);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 2px rgba(233,69,96,.2);
+}
+
+/* Forms global */
+.form-control, .form-select {
+  background: var(--bg-secondary) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(233,69,96,.2) !important;
+}
+.form-control::placeholder { color: var(--text-muted); }
+.input-group-text {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+/* Button accent */
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  transition: background .2s, transform .1s;
+}
+.btn-accent:hover { background: var(--accent-hover); color: #fff; transform: translateY(-1px); }
+.btn-accent:active { transform: translateY(0); }
+
+.btn-outline-secondary {
+  border-color: var(--border) !important;
+  color: var(--text-muted) !important;
+}
+.btn-outline-secondary:hover {
+  background: var(--bg-card-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+/* House type cards */
+.house-type-card {
+  transition: transform .2s, box-shadow .2s;
+  cursor: default;
+}
+.house-type-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.4) !important;
+}
+
+/* Info pills on index */
+.badge-info-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: .4rem .9rem;
+  font-size: .85rem;
+  color: var(--text-muted);
+}
+
+/* Info section index */
+.info-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+/* Configurador */
+.config-section .card-body { background: var(--bg-card); }
+
+.component-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  transition: border-color .2s, background .2s;
+  cursor: pointer;
+}
+.component-card:hover { border-color: var(--accent); }
+.component-card.selected {
+  border-color: var(--accent);
+  background: rgba(233,69,96,.07);
+}
+.component-card.required-comp {
+  border-left: 3px solid var(--accent);
+}
+
+.comp-checkbox { cursor: pointer; accent-color: var(--accent); width: 18px; height: 18px; }
+
+.qty-input { text-align: center; background: var(--bg-primary) !important; }
+.qty-btn { padding: .1rem .5rem; font-size: .85rem; }
+
+.group-label { background: rgba(255,255,255,.03); border-top: 1px solid var(--border); }
+
+/* Total panel */
+.total-panel { position: relative; }
+.total-panel .card-body { font-size: .95rem; }
+
+/* Stat cards */
+.stat-card { background: var(--bg-card); }
+
+/* Quote page */
+.quote-table { font-size: .85rem; }
+.quote-table td { border-color: var(--border) !important; padding: .4rem .75rem; }
+.cat-row { background: rgba(255,255,255,.03); }
+.category-block:last-child { border-bottom: none !important; }
+
+/* Admin table */
+.admin-table { font-size: .88rem; }
+.admin-table th { background: var(--bg-secondary); color: var(--text-muted); border-color: var(--border) !important; font-weight: 600; text-transform: uppercase; font-size: .75rem; letter-spacing: .04em; }
+.admin-table td { border-color: var(--border) !important; vertical-align: middle; }
+.admin-table tr:hover td { background: rgba(255,255,255,.02); }
+
+/* Quote card (mis cotizaciones) */
+.quote-card { transition: transform .15s; }
+.quote-card:hover { transform: translateY(-2px); }
+
+/* Footer */
+footer { background: var(--bg-secondary); border-color: var(--border) !important; color: var(--text-muted); }
+
+/* Alerts */
+.alert { border-radius: 8px; }
+.alert-success { background: rgba(40,167,69,.15); border-color: rgba(40,167,69,.3); color: #6fcf97; }
+.alert-danger { background: rgba(220,53,69,.15); border-color: rgba(220,53,69,.3); color: #eb5757; }
+.alert-info { background: rgba(23,162,184,.15); border-color: rgba(23,162,184,.3); color: #56ccf2; }
+.alert-warning { background: rgba(255,193,7,.1); border-color: rgba(255,193,7,.3); color: #f2c94c; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Print */
+@media print {
+  .navbar, footer, .btn, form { display: none !important; }
+  body { background: #fff; color: #000; }
+  .card { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; }
+  .text-accent { color: #c00 !important; }
+  .text-muted { color: #555 !important; }
+}
