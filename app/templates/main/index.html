@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Elige tu Casa{% endblock %}
+{% block content %}
+<div class="text-center mb-5">
+  <h1 class="display-5 fw-bold">Arma tu Casa</h1>
+  <p class="lead text-white">Elige el nivel de acabado y personaliza cada componente de tu construcción en Acapulco</p>
+  <div class="d-flex justify-content-center gap-3 mt-3 flex-wrap">
+    <span class="badge-info-pill"><i class="bi bi-geo-alt-fill me-1"></i>Acapulco, Gro.</span>
+    <span class="badge-info-pill"><i class="bi bi-rulers me-1"></i>Terreno 120 m²</span>
+    <span class="badge-info-pill"><i class="bi bi-building me-1"></i>Construcción 80 m²</span>
+  </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+  {% for ht in house_types %}
+  <div class="col-md-4">
+    <div class="house-type-card card h-100 shadow-sm" style="border-top: 4px solid {{ ht.color }};">
+      <div class="card-body p-4 d-flex flex-column">
+        <div class="text-center mb-3">
+          <i class="bi {{ ht.icon }} display-3" style="color: {{ ht.color }}"></i>
+        </div>
+        <h4 class="card-title text-center fw-bold">{{ ht.name }}</h4>
+        <div class="finish-badge text-center mb-4">
+          {% if ht.finish_level == 'popular' %}
+            <span class="badge bg-secondary">Acabados Populares</span>
+          {% elif ht.finish_level == 'intermedio' %}
+            <span class="badge bg-primary">Acabados Intermedios</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Acabados de Lujo</span>
+          {% endif %}
+        </div>
+        <div class="mt-auto">
+          <a href="{{ url_for('main.configurador', house_type_id=ht.id) }}"
+             class="btn btn-lg w-100 fw-bold"
+             style="background: {{ ht.color }}; color: #fff; border: none;">
+            <i class="bi bi-sliders me-2"></i>Configurar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 text-center text-muted">
+    <i class="bi bi-exclamation-circle display-4"></i>
+    <p class="mt-2">No hay tipos de casa disponibles aún.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="info-section mt-5 p-4 rounded">
+  <div class="row g-4 text-center">
+    <div class="col-md-3">
+      <i class="bi bi-person-badge-fill display-5 text-accent"></i>
+      <h6 class="mt-2 fw-bold">Topógrafo</h6>
+      <p class="small text-muted">~$4,000 MXN por 120 m²</p>
+    </div>
+    <div class="col-md-3">
+      <i class="bi bi-file-earmark-text-fill display-5 text-accent"></i>
+      <h6 class="mt-2 fw-bold">Planos + Permisos</h6>
+      <p class="small text-muted">Incluidos en la cotización</p>
+    </div>
+    <div class="col-md-3">
+      <i class="bi bi-percent display-5 text-accent"></i>
+      <h6 class="mt-2 fw-bold">Uso de suelo</h6>
+      <p class="small text-muted">60–70% de los 120 m² = ~80 m² construcción</p>
+    </div>
+    <div class="col-md-3">
+      <i class="bi bi-tools display-5 text-accent"></i>
+      <h6 class="mt-2 fw-bold">Supervisión de obra</h6>
+      <p class="small text-muted">15% adicional opcional</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

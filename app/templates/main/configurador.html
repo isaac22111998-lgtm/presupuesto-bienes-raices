@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}Configurador – {{ house_type.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h3 class="mb-0 fw-bold">{{ house_type.name }}</h3>
+    <small class="text-muted">Selecciona los componentes de tu casa · Acapulco, Gro.</small>
+  </div>
+  <span class="ms-auto badge fs-6 py-2 px-3" style="background:{{ house_type.color }}">
+    {% if house_type.finish_level == 'popular' %}Acabados Populares
+    {% elif house_type.finish_level == 'intermedio' %}Acabados Intermedios
+    {% else %}Acabados de Lujo{% endif %}
+  </span>
+</div>
+
+<form id="configForm" method="POST" action="{{ url_for('main.guardar_cotizacion') }}" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="house_type_id" value="{{ house_type.id }}">
+  <input type="hidden" name="items_json" id="itemsJson" value="[]">
+
+  <div class="row g-4">
+    <!-- LEFT: Categories + Components -->
+    <div class="col-lg-8">
+
+      <!-- Quote name & m2 settings -->
+      <div class="config-section card mb-4">
+        <div class="card-header section-header">
+          <i class="bi bi-pencil-fill me-2"></i>Datos de la Cotización
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small">Nombre de cotización</label>
+              <input type="text" name="quote_name" class="form-control" value="Mi Casa {{ house_type.name }}" maxlength="100">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Terreno (m²)</label>
+              <input type="number" name="land_m2" id="landM2" class="form-control" value="120" min="50" max="5000" step="1">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Construcción (m²)</label>
+              <input type="number" name="construction_m2" id="constM2" class="form-control" value="80" min="30" max="5000" step="1">
+              <small class="text-muted">60–70% del terreno</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category sections -->
+      {% for cat, comps in components_by_cat.items() %}
+      <div class="config-section card mb-3" id="cat-{{ cat.id }}">
+        <div class="card-header section-header d-flex justify-content-between align-items-center">
+          <span><i class="bi {{ cat.icon }} me-2"></i>{{ cat.name }}</span>
+          <span class="cat-subtotal badge bg-secondary" data-cat="{{ cat.id }}">$0</span>
+        </div>
+        <div class="card-body p-2">
+          {% set groups_seen = [] %}
+          {% for comp in comps %}
+            {% if comp.group_name %}
+              {% if comp.group_name not in groups_seen %}
+                {% set _ = groups_seen.append(comp.group_name) %}
+                <div class="group-label px-3 pt-2 pb-1 small text-muted fw-semibold">
+                  <i class="bi bi-ui-radios me-1"></i>Elige una opción:
+                </div>
+              {% endif %}
+            {% endif %}
+            <div class="component-card p-3 mb-1 rounded {% if comp.is_required %}required-comp{% endif %}"
+                 data-comp-id="{{ comp.id }}"
+                 data-price="{{ comp.unit_price }}"
+                 data-qty="{{ comp.default_quantity }}"
+                 data-unit="{{ comp.unit }}"
+                 data-group="{{ comp.group_name or '' }}"
+                 data-required="{{ 'true' if comp.is_required else 'false' }}"
+                 data-cat="{{ cat.id }}">
+              <div class="d-flex align-items-start gap-3">
+                <div class="comp-check mt-1">
+                  <input type="checkbox" class="form-check-input comp-checkbox"
+                         id="comp-{{ comp.id }}"
+                         {% if comp.is_required %}checked disabled{% endif %}>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <label class="form-check-label fw-semibold" for="comp-{{ comp.id }}">
+                      {{ comp.name }}
+                      {% if comp.is_required %}
+                        <span class="badge bg-danger ms-1 small">Obligatorio</span>
+                      {% endif %}
+                    </label>
+                    <div class="comp-price-display text-end ms-2">
+                      <span class="fw-bold text-accent comp-subtotal-display">
+                        ${{ "{:,.0f}".format(comp.unit_price * comp.default_quantity) }}
+                      </span>
+                      <div class="small text-muted">${{ "{:,.0f}".format(comp.unit_price) }}/{{ comp.unit }}</div>
+                    </div>
+                  </div>
+                  {% if comp.description %}
+                    <p class="small text-muted mb-2 mt-1">{{ comp.description }}</p>
+                  {% endif %}
+                  <div class="qty-control d-flex align-items-center gap-2 mt-2">
+                    <label class="small text-muted mb-0">Cantidad:</label>
+                    <button type="button" class="btn btn-sm btn-outline-secondary qty-btn qty-minus" data-id="{{ comp.id }}">−</button>
+                    <input type="number" class="form-control form-control-sm qty-input"
+                           id="qty-{{ comp.id }}"
+                           value="{{ comp.default_quantity | round | int }}"
+                           min="1" step="1"
+                           style="width:80px">
+                    <button type="button" class="btn btn-sm btn-outline-secondary qty-btn qty-plus" data-id="{{ comp.id }}">+</button>
+                    <span class="small text-muted">{{ comp.unit }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox display-4"></i>
+        <p class="mt-2">No hay componentes disponibles para este tipo de casa.</p>
+      </div>
+      {% endfor %}
+
+      <!-- Extras -->
+      <div class="config-section card mb-3">
+        <div class="card-header section-header"><i class="bi bi-plus-circle me-2"></i>Honorarios Adicionales</div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="supervision" name="include_supervision" value="1" checked>
+            <label class="form-check-label" for="supervision">
+              <strong>Supervisión y dirección de obra (15%)</strong>
+              <span class="text-muted small ms-2">Honorarios del arquitecto durante la construcción</span>
+            </label>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="contingency" name="include_contingency" value="1">
+            <label class="form-check-label" for="contingency">
+              <strong>Imprevistos (10%)</strong>
+              <span class="text-muted small ms-2">Reserva para variaciones en materiales y obra</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Sticky total panel -->
+    <div class="col-lg-4">
+      <div class="sticky-top" style="top: 80px;">
+        <div class="total-panel card shadow">
+          <div class="card-header section-header text-center">
+            <i class="bi bi-calculator me-2"></i>Tu Cotización
+          </div>
+          <div class="card-body p-3">
+            <div id="categorySummary" class="mb-3 small"></div>
+            <hr>
+            <div class="d-flex justify-content-between mb-1">
+              <span>Subtotal</span>
+              <span id="subtotalDisplay" class="fw-bold">$0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1 text-warning" id="supervisionRow">
+              <span>Supervisión (15%)</span>
+              <span id="supervisionDisplay">$0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1 text-info" id="contingencyRow" style="display:none!important">
+              <span>Imprevistos (10%)</span>
+              <span id="contingencyDisplay">$0</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between fs-5">
+              <span class="fw-bold">TOTAL</span>
+              <span id="totalDisplay" class="fw-bold text-accent">$0</span>
+            </div>
+            <p class="text-muted small text-center mt-2 mb-0">Precios en pesos mexicanos (MXN)</p>
+          </div>
+          <div class="card-footer">
+            <button type="submit" class="btn btn-accent btn-lg w-100 fw-bold">
+              <i class="bi bi-file-earmark-check me-2"></i>Generar Cotización
+            </button>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary w-100 mt-2">
+              <i class="bi bi-arrow-left me-1"></i>Cambiar tipo
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/configurador.js') }}"></script>
+{% endblock %}

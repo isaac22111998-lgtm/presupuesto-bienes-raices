@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Cotización #{{ quote.id }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+  <a href="{{ url_for('main.mis_cotizaciones') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h3 class="mb-0 fw-bold">{{ quote.name }}</h3>
+    <small class="text-muted">Cotización #{{ quote.id }} · {{ quote.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+  </div>
+  <div class="ms-auto d-flex gap-2 flex-wrap">
+    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-printer me-1"></i>Imprimir
+    </button>
+    <form method="POST" action="{{ url_for('main.eliminar_cotizacion', quote_id=quote.id) }}"
+          onsubmit="return confirm('¿Eliminar esta cotización?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Eliminar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Header info -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi {{ quote.house_type.icon }} display-5" style="color:{{ quote.house_type.color }}"></i>
+      <div class="fw-bold mt-1">{{ quote.house_type.name }}</div>
+      <div class="text-muted small">Tipo de casa</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi bi-rulers display-5 text-accent"></i>
+      <div class="fw-bold mt-1">{{ quote.land_m2 | int }} m²</div>
+      <div class="text-muted small">Terreno</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi bi-building display-5 text-accent"></i>
+      <div class="fw-bold mt-1">{{ quote.construction_m2 | int }} m²</div>
+      <div class="text-muted small">Construcción</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi bi-currency-dollar display-5 text-accent"></i>
+      <div class="fw-bold mt-1 text-accent">${{ "{:,.0f}".format(quote.total_price) }}</div>
+      <div class="text-muted small">Total MXN</div>
+    </div>
+  </div>
+</div>
+
+<!-- Floor plan -->
+<div class="card mb-4">
+  <div class="card-header section-header fw-bold">
+    <i class="bi bi-bounding-box-circles me-2"></i>Plano Esquemático de Referencia
+  </div>
+  <div class="card-body text-center">
+    <div class="d-flex justify-content-center">
+      {{ floorplan_svg | safe }}
+    </div>
+    <p class="text-muted small mt-3 mb-0 mx-auto" style="max-width: 600px;">
+      <i class="bi bi-info-circle me-1"></i>
+      Distribución aproximada basada en {{ quote.construction_m2 | int }} m² de construcción sobre un terreno
+      regular. La distribución real puede variar según la forma exacta del terreno — terrenos irregulares se
+      ajustan en campo por el topógrafo y el arquitecto. Este esquema es solo una referencia visual y
+      <strong>no sustituye el plano oficial firmado por el arquitecto o ingeniero responsable</strong>.
+    </p>
+  </div>
+</div>
+
+<!-- Items by category -->
+<div class="card mb-4">
+  <div class="card-header section-header fw-bold"><i class="bi bi-list-check me-2"></i>Desglose por Categoría</div>
+  <div class="card-body p-0">
+    {% for cat, items in items_by_cat.items() %}
+    {% set cat_total = items | sum(attribute='subtotal') %}
+    <div class="category-block border-bottom">
+      <div class="d-flex justify-content-between align-items-center px-3 py-2 cat-row">
+        <span class="fw-semibold"><i class="bi {{ cat.icon }} me-2"></i>{{ cat.name }}</span>
+        <span class="fw-bold text-accent">${{ "{:,.0f}".format(cat_total) }}</span>
+      </div>
+      <table class="table table-sm mb-0 quote-table">
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td class="ps-4 text-muted small" style="width:40%">{{ item.component.name }}</td>
+            <td class="small text-center">{{ item.quantity | int if item.quantity == item.quantity | int else item.quantity }} {{ item.component.unit }}</td>
+            <td class="small text-end">${{ "{:,.0f}".format(item.unit_price) }}/{{ item.component.unit }}</td>
+            <td class="small text-end fw-semibold">${{ "{:,.0f}".format(item.subtotal) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Totals -->
+<div class="row justify-content-end">
+  <div class="col-md-5">
+    <div class="total-panel card">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between mb-2">
+          <span>Subtotal de componentes</span>
+          <span class="fw-bold">${{ "{:,.0f}".format(quote.subtotal) }}</span>
+        </div>
+        {% if quote.supervision_amount > 0 %}
+        <div class="d-flex justify-content-between mb-2 text-warning">
+          <span>Supervisión de obra ({{ quote.supervision_pct | int }}%)</span>
+          <span>${{ "{:,.0f}".format(quote.supervision_amount) }}</span>
+        </div>
+        {% endif %}
+        {% if quote.contingency_amount > 0 %}
+        <div class="d-flex justify-content-between mb-2 text-info">
+          <span>Imprevistos ({{ quote.contingency_pct | int }}%)</span>
+          <span>${{ "{:,.0f}".format(quote.contingency_amount) }}</span>
+        </div>
+        {% endif %}
+        <hr>
+        <div class="d-flex justify-content-between fs-4 fw-bold">
+          <span>TOTAL</span>
+          <span class="text-accent">${{ "{:,.0f}".format(quote.total_price) }}</span>
+        </div>
+        <p class="text-muted small text-center mt-2 mb-0">Precios en pesos mexicanos (MXN)</p>
+        {% if quote.construction_m2 > 0 %}
+        <div class="text-center mt-2">
+          <span class="badge bg-secondary">
+            ${{ "{:,.0f}".format(quote.total_price / quote.construction_m2) }} MXN/m² de construcción
+          </span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="mt-3 d-flex gap-2">
+      <a href="{{ url_for('main.configurador', house_type_id=quote.house_type_id) }}" class="btn btn-outline-secondary flex-fill">
+        <i class="bi bi-pencil me-1"></i>Nueva
+      </a>
+      <a href="{{ url_for('main.mis_cotizaciones') }}" class="btn btn-accent flex-fill">
+        <i class="bi bi-list me-1"></i>Mis cotizaciones
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

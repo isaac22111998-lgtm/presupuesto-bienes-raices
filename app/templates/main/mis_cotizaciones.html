@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Mis Cotizaciones{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-file-text me-2 text-accent"></i>Mis Cotizaciones</h3>
+  <a href="{{ url_for('main.index') }}" class="btn btn-accent">
+    <i class="bi bi-plus-lg me-1"></i>Nueva cotización
+  </a>
+</div>
+
+{% if quotes %}
+<div class="row g-3">
+  {% for q in quotes %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm quote-card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="fw-bold mb-0">{{ q.name }}</h6>
+          <span class="badge" style="background:{{ q.house_type.color }}">{{ q.house_type.name }}</span>
+        </div>
+        <p class="text-muted small mb-2">
+          <i class="bi bi-calendar3 me-1"></i>{{ q.created_at.strftime('%d/%m/%Y') }}
+          &nbsp;·&nbsp;
+          <i class="bi bi-building me-1"></i>{{ q.construction_m2 | int }} m²
+        </p>
+        <p class="text-muted small mb-3">
+          <i class="bi bi-grid-3x3 me-1"></i>{{ q.items | length }} componentes
+        </p>
+        <div class="fs-5 fw-bold text-accent mb-3">${{ "{:,.0f}".format(q.total_price) }} MXN</div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('main.cotizacion', quote_id=q.id) }}" class="btn btn-sm btn-accent flex-fill">
+            <i class="bi bi-eye me-1"></i>Ver
+          </a>
+          <form method="POST" action="{{ url_for('main.eliminar_cotizacion', quote_id=q.id) }}"
+                onsubmit="return confirm('¿Eliminar?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-inbox display-1"></i>
+  <h5 class="mt-3">Aún no tienes cotizaciones</h5>
+  <p>Elige un tipo de casa y configura tu primera cotización.</p>
+  <a href="{{ url_for('main.index') }}" class="btn btn-accent">
+    <i class="bi bi-plus-lg me-1"></i>Empezar ahora
+  </a>
+</div>
+{% endif %}
+{% endblock %}
