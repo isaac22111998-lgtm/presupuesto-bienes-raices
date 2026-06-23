@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Componentes – Admin{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <h3 class="fw-bold mb-0"><i class="bi bi-tools me-2 text-accent"></i>Componentes</h3>
+  <a href="{{ url_for('admin.new_component') }}" class="btn btn-accent">
+    <i class="bi bi-plus-lg me-1"></i>Nuevo Componente
+  </a>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="row g-2 mb-4">
+  <div class="col-md-4">
+    <select name="cat" class="form-select" onchange="this.form.submit()">
+      <option value="">— Todas las categorías —</option>
+      {% for c in categories %}
+      <option value="{{ c.id }}" {% if cat_filter == c.id %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <select name="ht" class="form-select" onchange="this.form.submit()">
+      <option value="">— Todos los tipos —</option>
+      {% for h in house_types %}
+      <option value="{{ h.id }}" {% if ht_filter == h.id %}selected{% endif %}>{{ h.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-sm admin-table mb-0">
+      <thead>
+        <tr>
+          <th>Nombre</th><th>Categoría</th><th>Casa</th>
+          <th>Unidad</th><th>Precio</th><th>Obligatorio</th><th>Estado</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in components %}
+        <tr class="{% if not c.is_active %}table-secondary opacity-50{% endif %}">
+          <td>
+            <div class="fw-semibold">{{ c.name }}</div>
+            {% if c.group_name %}<small class="text-muted">Grupo: {{ c.group_name }}</small>{% endif %}
+          </td>
+          <td><small>{{ c.category.name }}</small></td>
+          <td>
+            {% if c.house_type %}
+              <span class="badge" style="background:{{ c.house_type.color }}">{{ c.house_type.name }}</span>
+            {% else %}
+              <span class="badge bg-secondary">Todos</span>
+            {% endif %}
+          </td>
+          <td><small>{{ c.unit }}</small></td>
+          <td class="fw-bold text-accent">${{ "{:,.0f}".format(c.unit_price) }}</td>
+          <td>{% if c.is_required %}<i class="bi bi-check-circle-fill text-danger"></i>{% endif %}</td>
+          <td>
+            {% if c.is_active %}
+              <span class="badge bg-success">Activo</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactivo</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('admin.edit_component', comp_id=c.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form method="POST" action="{{ url_for('admin.toggle_component', comp_id=c.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm {% if c.is_active %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
+                  <i class="bi {% if c.is_active %}bi-eye-slash{% else %}bi-eye{% endif %}"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">Sin componentes.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Panel Admin{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h3 class="fw-bold mb-0"><i class="bi bi-shield-fill me-2 text-warning"></i>Panel de Administración</h3>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi bi-people-fill display-5 text-accent"></i>
+      <div class="fw-bold fs-3 mt-1">{{ stats.users }}</div>
+      <div class="text-muted small">Usuarios</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi bi-file-text-fill display-5 text-accent"></i>
+      <div class="fw-bold fs-3 mt-1">{{ stats.quotes }}</div>
+      <div class="text-muted small">Cotizaciones</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi bi-tools display-5 text-accent"></i>
+      <div class="fw-bold fs-3 mt-1">{{ stats.components }}</div>
+      <div class="text-muted small">Componentes activos</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card card text-center p-3">
+      <i class="bi bi-grid-fill display-5 text-accent"></i>
+      <div class="fw-bold fs-3 mt-1">{{ stats.categories }}</div>
+      <div class="text-muted small">Categorías</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.new_component') }}" class="btn btn-accent w-100 py-3">
+      <i class="bi bi-plus-circle-fill me-2"></i>Agregar Componente
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.components') }}" class="btn btn-outline-secondary w-100 py-3">
+      <i class="bi bi-tools me-2"></i>Ver Componentes
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary w-100 py-3">
+      <i class="bi bi-people me-2"></i>Ver Usuarios
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header section-header"><i class="bi bi-clock-history me-2"></i>Cotizaciones Recientes</div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0 admin-table">
+      <thead><tr><th>#</th><th>Usuario</th><th>Casa</th><th>m²</th><th>Total</th><th>Fecha</th></tr></thead>
+      <tbody>
+        {% for q in recent_quotes %}
+        <tr>
+          <td><a href="{{ url_for('main.cotizacion', quote_id=q.id) }}">#{{ q.id }}</a></td>
+          <td>{{ q.user.username }}</td>
+          <td><span class="badge" style="background:{{ q.house_type.color }}">{{ q.house_type.name }}</span></td>
+          <td>{{ q.construction_m2 | int }}</td>
+          <td class="fw-bold text-accent">${{ "{:,.0f}".format(q.total_price) }}</td>
+          <td class="text-muted small">{{ q.created_at.strftime('%d/%m/%Y') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted">Sin cotizaciones aún.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

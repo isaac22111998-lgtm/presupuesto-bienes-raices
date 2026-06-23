@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{{ url_for('admin.components') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+  <h3 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2 text-accent"></i>{{ title }}</h3>
+</div>
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-7">
+    <div class="card shadow">
+      <div class="card-body p-4">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">{{ form.name.label }}</label>
+              {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+              {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ form.description.label }}</label>
+              {{ form.description(class="form-control", rows=2) }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.category_id.label }}</label>
+              {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+              {% for e in form.category_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.house_type_id.label }}</label>
+              {{ form.house_type_id(class="form-select") }}
+              <small class="text-muted">"Todos los tipos" = aparece en las 3 casas</small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{{ form.unit.label }}</label>
+              {{ form.unit(class="form-select") }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{{ form.unit_price.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                {{ form.unit_price(class="form-control" + (" is-invalid" if form.unit_price.errors else "")) }}
+              </div>
+              {% for e in form.unit_price.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">{{ form.default_quantity.label }}</label>
+              {{ form.default_quantity(class="form-control" + (" is-invalid" if form.default_quantity.errors else "")) }}
+              {% for e in form.default_quantity.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ form.group_name.label }}</label>
+              {{ form.group_name(class="form-control", placeholder="ej: piso_principal, gas_sistema") }}
+              <small class="text-muted">Si hay grupo, el usuario solo puede elegir 1 del grupo</small>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check form-switch ms-2">
+                {{ form.is_required(class="form-check-input") }}
+                <label class="form-check-label">{{ form.is_required.label }}</label>
+                <div class="text-muted small">El usuario no puede desactivarlo</div>
+              </div>
+            </div>
+            <div class="col-12 mt-2">
+              {{ form.submit(class="btn btn-accent btn-lg px-5") }}
+              <a href="{{ url_for('admin.components') }}" class="btn btn-outline-secondary btn-lg ms-2">Cancelar</a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
