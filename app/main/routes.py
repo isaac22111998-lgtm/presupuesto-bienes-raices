@@ -1,11 +1,28 @@
 import json
+import logging
+import threading
 import bleach
-from flask import render_template, redirect, url_for, flash, request, abort
+from flask import render_template, redirect, url_for, flash, request, abort, jsonify, current_app
 from flask_login import login_required, current_user
 from app import db
 from app.main import main_bp
 from app.models import HouseType, Category, Component, Quote, QuoteItem
 from app.ai_floorplan import generate_dalle_image
+
+logger = logging.getLogger(__name__)
+
+
+def _generate_in_background(app, quote_id, construction_m2, finish_level, comp_names):
+    """Genera la imagen DALL-E en un hilo de fondo y la guarda en la BD."""
+    with app.app_context():
+        try:
+            b64 = generate_dalle_image(construction_m2, finish_level, comp_names)
+            quote = db.session.get(Quote, quote_id)
+            if quote and not quote.floorplan_image_b64:
+                quote.floorplan_image_b64 = b64
+                db.session.commit()
+        except Exception as e:
+            logger.warning('DALL-E background generation falló: %s', e)
 
 
 @main_bp.route('/')
@@ -20,7 +37,6 @@ def index():
 def configurador(house_type_id):
     house_type = HouseType.query.get_or_404(house_type_id)
     categories = Category.query.order_by(Category.order).all()
-    # Components for this house type OR shared (house_type_id is NULL)
     components_by_cat = {}
     for cat in categories:
         comps = Component.query.filter(
@@ -52,18 +68,15 @@ def guardar_cotizacion():
     include_supervision = request.form.get('include_supervision') == '1'
     include_contingency = request.form.get('include_contingency') == '1'
 
-    # Validate m2 values
     land_m2 = max(50.0, min(5000.0, land_m2))
     construction_m2 = max(30.0, min(land_m2, construction_m2))
 
-    # Parse selected components JSON
     try:
         items_data = json.loads(request.form.get('items_json', '[]'))
     except (json.JSONDecodeError, ValueError):
         flash('Error al procesar los componentes.', 'danger')
         return redirect(url_for('main.configurador', house_type_id=house_type_id))
 
-    # Validate each component belongs to this house type
     allowed_ids = {c.id for c in Component.query.filter(
         Component.is_active == True,
         db.or_(Component.house_type_id == house_type_id, Component.house_type_id == None)
@@ -118,26 +131,36 @@ def cotizacion(quote_id):
     quote = Quote.query.get_or_404(quote_id)
     if quote.user_id != current_user.id and not current_user.is_admin():
         abort(403)
-    categories = Category.query.order_by(Category.order).all()
     items_by_cat = {}
     for item in quote.items:
         cat = item.component.category
         if cat not in items_by_cat:
             items_by_cat[cat] = []
         items_by_cat[cat].append(item)
-    # Genera imagen DALL-E la primera vez; reutiliza la guardada en BD las siguientes
+
+    # Dispara generación en hilo de fondo si aún no hay imagen
     if not quote.floorplan_image_b64:
-        try:
-            comp_names = [item.component.name for item in quote.items]
-            quote.floorplan_image_b64 = generate_dalle_image(
-                quote.construction_m2, quote.house_type.finish_level, comp_names
-            )
-            db.session.commit()
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning('DALL-E falló: %s', e)
+        comp_names = [item.component.name for item in quote.items]
+        t = threading.Thread(
+            target=_generate_in_background,
+            args=(current_app._get_current_object(), quote.id,
+                  quote.construction_m2, quote.house_type.finish_level, comp_names),
+            daemon=True
+        )
+        t.start()
 
     return render_template('main/cotizacion.html', quote=quote, items_by_cat=items_by_cat)
+
+
+@main_bp.route('/cotizacion/<int:quote_id>/floorplan-status')
+@login_required
+def floorplan_status(quote_id):
+    quote = Quote.query.get_or_404(quote_id)
+    if quote.user_id != current_user.id and not current_user.is_admin():
+        abort(403)
+    if quote.floorplan_image_b64:
+        return jsonify({'status': 'ready', 'image': quote.floorplan_image_b64})
+    return jsonify({'status': 'generating'})
 
 
 @main_bp.route('/mis-cotizaciones')

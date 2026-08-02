@@ -53,27 +53,47 @@ def generate_dalle_image(construction_m2, finish_level='popular', components=Non
     if components:
         comp_list = ', '.join(components[:10])  # máximo 10 para no exceder tokens
 
+    room_names = ['Sala-Comedor', 'Cocina', 'Recamara Principal']
+    if bedrooms >= 2:
+        room_names.append('Recamara 2')
+    if bedrooms >= 3:
+        room_names.append('Recamara 3')
+    room_names.append('Bano 1' if bathrooms == 1 else 'Bano 1')
+    if bathrooms >= 2:
+        room_names.append('Bano 2')
+    room_names.extend(['Pasillo', 'Jardin'])
+
+    rooms_str = ', '.join(room_names)
+
     prompt = (
-        f"Professional 2D architectural floor plan, top-down view, "
-        f"{construction_m2:.0f} square meter single-story house with {finish_str} finish level. "
-        f"Include: sala-comedor, cocina, {bedrooms} recámaras, {bathrooms} baños, pasillo, jardín. "
-        + (f"Additional spaces: {comp_list}. " if comp_list else "") +
-        "Show furniture layout inside each room (beds, sofas, tables, kitchen appliances). "
-        "Include landscaping (trees, plants) around the perimeter. "
-        "Black lines on white background, rooms labeled in Spanish, "
-        "professional architectural drawing style, color-coded areas, "
-        "corridors and circulation paths visible, flat 2D top-down view."
+        f"Professional 2D architectural floor plan drawing, strict top-down view, "
+        f"single-story house of exactly {construction_m2:.0f} square meters, {finish_str} finish. "
+        f"The plan must contain ONLY these rooms with EXACTLY these labels written inside each room: {rooms_str}. "
+        "CRITICAL TEXT RULES: every room label must be spelled perfectly, no typos, no invented symbols, "
+        "no accents on capital letters, clear legible font. "
+        "DO NOT add any footer text, legends, technical notes, measurements, or annotations outside the rooms. "
+        "Show realistic furniture inside each room: sofa and dining table in Sala-Comedor, "
+        "appliances in Cocina, beds in Recamaras, toilet and sink in Banos. "
+        "Surround the house with a garden with trees and plants. "
+        "Color-coded rooms with pastel tones, thick black walls, white background, "
+        "professional clean architectural illustration style."
+        + (f" Additional context: {comp_list}." if comp_list else "")
     )
 
     response = client.images.generate(
-        model='dall-e-3',
+        model='gpt-image-1',
         prompt=prompt,
         size='1024x1024',
-        quality='standard',
+        quality='high',
         n=1,
     )
 
-    # Descarga la imagen desde la URL y la convierte a base64
+    # gpt-image-1 devuelve base64 directamente
+    b64 = response.data[0].b64_json
+    if b64:
+        return b64
+
+    # Fallback: si devuelve URL, descarga y convierte
     image_url = response.data[0].url
     img_bytes = httpx.get(image_url).content
     return base64.b64encode(img_bytes).decode('utf-8')

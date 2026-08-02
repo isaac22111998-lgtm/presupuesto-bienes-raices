@@ -59,22 +59,55 @@
     <i class="bi bi-bounding-box-circles me-2"></i>Plano Esquemático de Referencia
   </div>
   <div class="card-body text-center">
-    <div class="d-flex flex-column align-items-center">
+    <div class="d-flex flex-column align-items-center" id="floorplan-container">
       {% if quote.floorplan_image_b64 %}
         <img src="data:image/png;base64,{{ quote.floorplan_image_b64 }}"
              alt="Plano esquemático generado por IA"
              style="width:100%;max-width:520px;border-radius:8px;border:1px solid #30363d;">
-        <p class="text-muted small mt-2 mb-0" style="font-size:0.75rem;">
+        <p class="text-white small mt-2 mb-0" style="font-size:0.75rem;">
           <i class="bi bi-stars me-1"></i>Imagen generada por DALL-E 3
         </p>
       {% else %}
-        <div class="text-center text-muted py-4">
-          <i class="bi bi-image display-4 d-block mb-2"></i>
-          <span>Generando plano con IA... recarga la página en unos segundos.</span>
+        <div id="floorplan-spinner" class="text-center py-5">
+          <div class="spinner-border text-accent mb-3" style="width:3rem;height:3rem;" role="status">
+            <span class="visually-hidden">Generando...</span>
+          </div>
+          <p class="text-muted mb-1 fw-semibold">Generando plano con IA...</p>
+          <p class="text-muted small">Esto tarda unos segundos, no cierres la página.</p>
         </div>
+        <div id="floorplan-result" style="display:none;" class="w-100 text-center"></div>
+        <script>
+          (function () {
+            const statusUrl = "{{ url_for('main.floorplan_status', quote_id=quote.id) }}";
+            const spinner = document.getElementById('floorplan-spinner');
+            const result  = document.getElementById('floorplan-result');
+
+            function poll() {
+              fetch(statusUrl)
+                .then(r => r.json())
+                .then(data => {
+                  if (data.status === 'ready') {
+                    spinner.style.display = 'none';
+                    result.innerHTML =
+                      '<img src="data:image/png;base64,' + data.image + '" ' +
+                      'alt="Plano generado por IA" ' +
+                      'style="width:100%;max-width:520px;border-radius:8px;border:1px solid #30363d;">' +
+                      '<p class="text-muted small mt-2 mb-0" style="font-size:0.75rem;">' +
+                      '<i class="bi bi-stars me-1"></i>Imagen generada por DALL-E 3</p>';
+                    result.style.display = 'block';
+                  } else {
+                    setTimeout(poll, 4000);
+                  }
+                })
+                .catch(() => setTimeout(poll, 6000));
+            }
+
+            setTimeout(poll, 4000);
+          })();
+        </script>
       {% endif %}
     </div>
-    <p class="text-muted small mt-3 mb-0 mx-auto" style="max-width: 600px;">
+    <p class="text-white small mt-3 mb-0 mx-auto" style="max-width: 600px;">
       <i class="bi bi-info-circle me-1"></i>
       Distribución aproximada basada en {{ quote.construction_m2 | int }} m² de construcción sobre un terreno
       regular. La distribución real puede variar según la forma exacta del terreno — terrenos irregulares se
