@@ -27,13 +27,15 @@ _FALLBACK_COMPACT = [
 ]
 
 
-def generate_dalle_image(construction_m2, finish_level='popular'):
+def generate_dalle_image(construction_m2, finish_level='popular', components=None):
     """
     Genera una imagen del plano con DALL-E 3.
     Devuelve string base64 o lanza excepción si falla.
     La imagen se genera una sola vez y se guarda en la BD para no repetir el costo.
     """
     import openai
+    import httpx
+    import base64
 
     api_key = current_app.config.get('OPENAI_API_KEY', '')
     if not api_key:
@@ -46,15 +48,21 @@ def generate_dalle_image(construction_m2, finish_level='popular'):
     finish_map = {'popular': 'económico', 'intermedio': 'intermedio', 'lujo': 'de lujo'}
     finish_str = finish_map.get(finish_level, 'estándar')
 
+    # Lista de componentes seleccionados para enriquecer el prompt
+    comp_list = ''
+    if components:
+        comp_list = ', '.join(components[:10])  # máximo 10 para no exceder tokens
+
     prompt = (
-        f"2D architectural floor plan, top-down view, {construction_m2:.0f} square meter "
-        f"single-story house with {finish_str} finish level. "
-        f"Rooms: sala-comedor, cocina, {bedrooms} recámaras, {bathrooms} baños"
-        + (", pasillo" if bedrooms >= 3 else "") + ". "
-        "Clean technical drawing style, black thin lines on white background, "
-        "each room clearly delimited and labeled in Spanish with its area in m², "
-        "entrance marked at the front, no furniture, no 3D perspective, flat 2D view, "
-        "professional minimalist architectural style."
+        f"Professional 2D architectural floor plan, top-down view, "
+        f"{construction_m2:.0f} square meter single-story house with {finish_str} finish level. "
+        f"Include: sala-comedor, cocina, {bedrooms} recámaras, {bathrooms} baños, pasillo, jardín. "
+        + (f"Additional spaces: {comp_list}. " if comp_list else "") +
+        "Show furniture layout inside each room (beds, sofas, tables, kitchen appliances). "
+        "Include landscaping (trees, plants) around the perimeter. "
+        "Black lines on white background, rooms labeled in Spanish, "
+        "professional architectural drawing style, color-coded areas, "
+        "corridors and circulation paths visible, flat 2D top-down view."
     )
 
     response = client.images.generate(
@@ -62,10 +70,13 @@ def generate_dalle_image(construction_m2, finish_level='popular'):
         prompt=prompt,
         size='1024x1024',
         quality='standard',
-        response_format='b64_json',
         n=1,
     )
-    return response.data[0].b64_json
+
+    # Descarga la imagen desde la URL y la convierte a base64
+    image_url = response.data[0].url
+    img_bytes = httpx.get(image_url).content
+    return base64.b64encode(img_bytes).decode('utf-8')
 
 
 def _fallback_rooms(construction_m2):
