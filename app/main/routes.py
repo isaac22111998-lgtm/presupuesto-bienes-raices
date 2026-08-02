@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.main import main_bp
 from app.models import HouseType, Category, Component, Quote, QuoteItem
-from app.floorplan import render_svg
+from app.ai_floorplan import render_svg
 
 
 @main_bp.route('/')
@@ -125,7 +125,9 @@ def cotizacion(quote_id):
         if cat not in items_by_cat:
             items_by_cat[cat] = []
         items_by_cat[cat].append(item)
-    floorplan_svg, floorplan_rooms = render_svg(quote.construction_m2)
+    floorplan_svg, floorplan_rooms = render_svg(
+        quote.construction_m2, quote.house_type.finish_level
+    )
     return render_template('main/cotizacion.html', quote=quote, items_by_cat=items_by_cat,
                            floorplan_svg=floorplan_svg, floorplan_rooms=floorplan_rooms)
 
