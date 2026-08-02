@@ -60,7 +60,16 @@
   </div>
   <div class="card-body text-center">
     <div class="d-flex justify-content-center">
-      {{ floorplan_svg | safe }}
+      {% if quote.floorplan_image_b64 %}
+        <img src="data:image/png;base64,{{ quote.floorplan_image_b64 }}"
+             alt="Plano esquemático generado por IA"
+             style="width:100%;max-width:520px;border-radius:8px;border:1px solid #30363d;">
+        <p class="text-muted small mt-1 mb-0" style="font-size:0.75rem;">
+          <i class="bi bi-stars me-1"></i>Imagen generada por DALL-E 3
+        </p>
+      {% else %}
+        {{ floorplan_svg | safe }}
+      {% endif %}
     </div>
     <p class="text-muted small mt-3 mb-0 mx-auto" style="max-width: 600px;">
       <i class="bi bi-info-circle me-1"></i>

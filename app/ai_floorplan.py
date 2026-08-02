@@ -27,6 +27,47 @@ _FALLBACK_COMPACT = [
 ]
 
 
+def generate_dalle_image(construction_m2, finish_level='popular'):
+    """
+    Genera una imagen del plano con DALL-E 3.
+    Devuelve string base64 o lanza excepción si falla.
+    La imagen se genera una sola vez y se guarda en la BD para no repetir el costo.
+    """
+    import openai
+
+    api_key = current_app.config.get('OPENAI_API_KEY', '')
+    if not api_key:
+        raise ValueError('OPENAI_API_KEY no configurada')
+
+    client = openai.OpenAI(api_key=api_key)
+
+    bedrooms = 3 if construction_m2 >= 60 else 2
+    bathrooms = 2 if construction_m2 >= 60 else 1
+    finish_map = {'popular': 'económico', 'intermedio': 'intermedio', 'lujo': 'de lujo'}
+    finish_str = finish_map.get(finish_level, 'estándar')
+
+    prompt = (
+        f"2D architectural floor plan, top-down view, {construction_m2:.0f} square meter "
+        f"single-story house with {finish_str} finish level. "
+        f"Rooms: sala-comedor, cocina, {bedrooms} recámaras, {bathrooms} baños"
+        + (", pasillo" if bedrooms >= 3 else "") + ". "
+        "Clean technical drawing style, black thin lines on white background, "
+        "each room clearly delimited and labeled in Spanish with its area in m², "
+        "entrance marked at the front, no furniture, no 3D perspective, flat 2D view, "
+        "professional minimalist architectural style."
+    )
+
+    response = client.images.generate(
+        model='dall-e-3',
+        prompt=prompt,
+        size='1024x1024',
+        quality='standard',
+        response_format='b64_json',
+        n=1,
+    )
+    return response.data[0].b64_json
+
+
 def _fallback_rooms(construction_m2):
     """Distribución estática cuando la API no está disponible."""
     aspect = 1.25

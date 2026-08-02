@@ -91,6 +91,7 @@ class Quote(db.Model):
     total_price = db.Column(db.Float, default=0.0)
     notes = db.Column(db.Text)
     status = db.Column(db.String(20), default='draft')  # draft, final
+    floorplan_image_b64 = db.Column(db.Text, nullable=True)  # imagen DALL-E en base64
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     items = db.relationship('QuoteItem', backref='quote', lazy=True, cascade='all, delete-orphan')

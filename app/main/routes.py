@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.main import main_bp
 from app.models import HouseType, Category, Component, Quote, QuoteItem
-from app.ai_floorplan import render_svg
+from app.ai_floorplan import render_svg, generate_dalle_image
 
 
 @main_bp.route('/')
@@ -125,6 +125,17 @@ def cotizacion(quote_id):
         if cat not in items_by_cat:
             items_by_cat[cat] = []
         items_by_cat[cat].append(item)
+    # Genera imagen DALL-E la primera vez; reutiliza la guardada en BD las siguientes
+    if not quote.floorplan_image_b64:
+        try:
+            quote.floorplan_image_b64 = generate_dalle_image(
+                quote.construction_m2, quote.house_type.finish_level
+            )
+            db.session.commit()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning('DALL-E falló, usando SVG: %s', e)
+
     floorplan_svg, floorplan_rooms = render_svg(
         quote.construction_m2, quote.house_type.finish_level
     )

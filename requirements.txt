@@ -11,3 +11,4 @@ Flask-Migrate==4.0.7
 bleach==6.1.0
 gunicorn==22.0.0
 google-generativeai==0.8.2
+openai==1.51.0
