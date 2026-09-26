@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      - DATABASE_URL=postgresql://presupuesto_user:presupuesto_pass@db:5432/presupuesto_db
+      - DATABASE_URL=postgresql+psycopg2://presupuesto_user:presupuesto_pass@db:5432/presupuesto_db
     ports:
       - "5000:5000"
     depends_on:
