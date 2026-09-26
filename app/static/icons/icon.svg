@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0d1117"/>
+  <!-- Cuerpo de la casa -->
+  <rect x="128" y="228" width="256" height="204" rx="4" fill="#e94560"/>
+  <!-- Techo -->
+  <polygon points="256,64 444,238 68,238" fill="#e94560"/>
+  <!-- Puerta -->
+  <rect x="216" y="328" width="80" height="104" rx="6" fill="#0d1117"/>
+  <!-- Signo de pesos -->
+  <circle cx="372" cy="372" r="66" fill="#f59e0b"/>
+  <text x="372" y="400" text-anchor="middle" font-family="Arial Black,sans-serif" font-size="72" font-weight="900" fill="#0d1117">$</text>
+</svg>

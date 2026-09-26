@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Sin conexión — PresupuestoAcapulco{% endblock %}
+{% block content %}
+<div class="d-flex flex-column align-items-center justify-content-center text-center py-5" style="min-height:60vh">
+  <i class="bi bi-wifi-off display-1 text-accent mb-4"></i>
+  <h2 class="fw-bold mb-2">Sin conexión a Internet</h2>
+  <p class="text-muted mb-4" style="max-width:420px">
+    No se puede cargar esta página porque no hay conexión. Tus cotizaciones guardadas
+    estarán disponibles en cuanto vuelvas a conectarte.
+  </p>
+  <button onclick="window.location.reload()" class="btn btn-accent">
+    <i class="bi bi-arrow-clockwise me-2"></i>Reintentar
+  </button>
+</div>
+{% endblock %}

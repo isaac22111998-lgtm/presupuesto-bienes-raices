@@ -163,6 +163,19 @@ def floorplan_status(quote_id):
     return jsonify({'status': 'generating'})
 
 
+@main_bp.route('/sw.js')
+def service_worker():
+    response = current_app.make_response(current_app.send_static_file('sw.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
+
+
+@main_bp.route('/offline')
+def offline():
+    return render_template('main/offline.html')
+
+
 @main_bp.route('/mis-cotizaciones')
 @login_required
 def mis_cotizaciones():
