@@ -1,9 +1,9 @@
-const CACHE_NAME = 'presupuesto-acapulco-v1';
+const CACHE_NAME = 'presupuesto-acapulco-v2';
 
-// Recursos estáticos que se cachean en la instalación
 const STATIC_ASSETS = [
   '/static/css/style.css',
   '/static/js/configurador.js',
+  '/static/js/pwa.js',
   '/offline',
 ];
 
@@ -31,7 +31,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Solo interceptamos peticiones GET al mismo origen
   if (event.request.method !== 'GET' || url.origin !== location.origin) return;
 
   // Archivos estáticos → caché primero, luego red (cache-first)
@@ -54,5 +53,32 @@ self.addEventListener('fetch', (event) => {
     fetch(event.request).catch(() =>
       caches.match(event.request).then((cached) => cached || caches.match('/offline'))
     )
+  );
+});
+
+// PUSH: recibe notificaciones del servidor
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() ?? {
+    title: 'PresupuestoAcapulco',
+    body: 'Tienes una nueva notificación.',
+  };
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/static/icons/icon.svg',
+      badge: '/static/icons/icon.svg',
+      vibrate: [200, 100, 200],
+    })
+  );
+});
+
+// NOTIFICATIONCLICK: abre la app al tocar la notificación
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((list) => {
+      const existing = list.find((c) => c.url.includes('localhost') && 'focus' in c);
+      return existing ? existing.focus() : clients.openWindow('/');
+    })
   );
 });
