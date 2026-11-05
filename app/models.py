@@ -32,9 +32,13 @@ class User(UserMixin, db.Model):
         return self.role == 'admin'
 
     def is_locked(self):
-        if self.locked_until and self.locked_until > datetime.now(timezone.utc):
-            return True
-        return False
+        if not self.locked_until:
+            return False
+        locked_until = self.locked_until
+        # La columna no guarda zona horaria; el valor se escribe en UTC
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=timezone.utc)
+        return locked_until > datetime.now(timezone.utc)
 
 
 class HouseType(db.Model):
