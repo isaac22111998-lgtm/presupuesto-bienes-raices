@@ -1,10 +1,19 @@
 import os
+import re
 from datetime import timedelta
+
+
+def _database_url():
+    url = os.environ.get('DATABASE_URL', 'sqlite:///presupuesto.db')
+    # Neon/Render entregan postgres:// o postgresql://; la app usa psycopg2
+    return re.sub(r'^postgres(ql)?://', 'postgresql+psycopg2://', url)
 
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-change-this')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///presupuesto.db')
+    SQLALCHEMY_DATABASE_URI = _database_url()
+    # Neon cierra conexiones inactivas; se verifican antes de usarlas
+    SQLALCHEMY_ENGINE_OPTIONS = {'pool_pre_ping': True}
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Session security (OWASP A07)
