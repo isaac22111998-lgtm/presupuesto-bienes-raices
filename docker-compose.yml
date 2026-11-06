@@ -5,9 +5,9 @@ services:
     build: .
     container_name: presupuesto_web
     restart: unless-stopped
+    # DATABASE_URL viene de .env (Neon). Para volver al Postgres local usa:
+    # DATABASE_URL=postgresql+psycopg2://presupuesto_user:presupuesto_pass@db:5432/presupuesto_db
     env_file: .env
-    environment:
-      - DATABASE_URL=postgresql+psycopg2://presupuesto_user:presupuesto_pass@db:5432/presupuesto_db
     ports:
       - "5000:5000"
     depends_on:
